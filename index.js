@@ -1,4 +1,4 @@
-const { Client, LocalAuth, Buttons } = require('whatsapp-web.js');
+const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const path = require('path');
 const cron = require('node-cron');
@@ -14,7 +14,6 @@ const client = new Client({
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
             '--no-zygote',
             '--no-first-run',
             '--single-process',
@@ -34,27 +33,25 @@ client.on('ready', () => {
     console.log("🔥 Bot pronto e WhatsApp collegato!");
     console.log("👤 Account collegato:", client.info.wid._serialized);
 
-    // ⏰ SCHEDULAZIONE AUTOMATICA ore 16:00 ogni giorno
+    // INVIO AUTOMATICO ogni giorno alle 16:00
     cron.schedule(
         '0 16 * * *',
         () => {
-            console.log("⏰ Sono le 16:00, invio pulsanti al gruppo SCF Luxury...");
-            sendPollButtons('SCF Luxury');
+            console.log("⏰ Sono le 16:00, invio messaggio al gruppo SCF Luxury...");
+            sendMessageToGroup('SCF Luxury', 'Assegnazioni: tutto allineato?');
         },
         { timezone: 'Europe/Rome' }
     );
 });
 
-async function sendPollButtons(groupName) {
+async function sendMessageToGroup(groupName, message) {
     try {
-        console.log("🔍 Cerco il gruppo:", groupName);
-
         const chats = await client.getChats();
-        const groups = chats.filter(c => c.isGroup);
-
-        const group = groups.find(g =>
-            g.name.toLowerCase() === groupName.toLowerCase() ||
-            g.name.toLowerCase().includes(groupName.toLowerCase())
+        const group = chats.find(
+            c => c.isGroup && (
+                c.name.toLowerCase() === groupName.toLowerCase() ||
+                c.name.toLowerCase().includes(groupName.toLowerCase())
+            )
         );
 
         if (!group) {
@@ -62,18 +59,11 @@ async function sendPollButtons(groupName) {
             return;
         }
 
-        const buttons = new Buttons(
-            "Verifica assegnazioni:\nDrivers e Brokers informati?",
-            [{ body: "Sì" }, { body: "No" }],
-            "",
-            ""
-        );
-
-        const res = await client.sendMessage(group.id._serialized, buttons);
-        console.log("📨 Pulsanti inviati! ID:", res.id.id);
+        await client.sendMessage(group.id._serialized, message);
+        console.log("📨 Messaggio inviato al gruppo:", groupName);
 
     } catch (err) {
-        console.error("🚨 ERRORE invio pulsanti:", err);
+        console.error("🚨 ERRORE durante l'invio:", err);
     }
 }
 
