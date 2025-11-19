@@ -9,19 +9,18 @@ const client = new Client({
         dataPath: path.join(__dirname, 'session')
     }),
     puppeteer: {
-    executablePath: '/usr/bin/google-chrome', // usa Chrome preinstallato nel server
-    headless: true,
-    args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-software-rasterizer',
-        '--no-zygote',
-        '--single-process'
-    ]
-}
-
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-zygote',
+            '--no-first-run',
+            '--single-process',
+            '--disable-gpu'
+        ]
+    }
 });
 
 client.initialize();
@@ -35,23 +34,21 @@ client.on('ready', () => {
     console.log("🔥 Bot pronto e WhatsApp collegato!");
     console.log("👤 Account collegato:", client.info.wid._serialized);
 
-    // ⏰ SCHEDULAZIONE AUTOMATICA - tutti i giorni alle 16:00
+    // ⏰ SCHEDULAZIONE AUTOMATICA ore 16:00 ogni giorno
     cron.schedule(
         '0 16 * * *',
         () => {
-            console.log("⏰ Sono le 16:00, invio messaggio con pulsanti al gruppo SCF Luxury...");
+            console.log("⏰ Sono le 16:00, invio pulsanti al gruppo SCF Luxury...");
             sendPollButtons('SCF Luxury');
         },
-        {
-            timezone: 'Europe/Rome'
-        }
+        { timezone: 'Europe/Rome' }
     );
 });
 
-// INVIA PULSANTI AL GRUPPO
 async function sendPollButtons(groupName) {
     try {
         console.log("🔍 Cerco il gruppo:", groupName);
+
         const chats = await client.getChats();
         const groups = chats.filter(c => c.isGroup);
 
@@ -80,6 +77,6 @@ async function sendPollButtons(groupName) {
     }
 }
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
     console.error("🚨 Errore non gestito:", reason);
 });
