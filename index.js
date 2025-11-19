@@ -9,9 +9,19 @@ const client = new Client({
         dataPath: path.join(__dirname, 'session')
     }),
     puppeteer: {
-        headless: true,
-        args: ['--no-sandbox']
-    }
+    executablePath: '/usr/bin/google-chrome', // usa Chrome preinstallato nel server
+    headless: true,
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--no-zygote',
+        '--single-process'
+    ]
+}
+
 });
 
 client.initialize();
